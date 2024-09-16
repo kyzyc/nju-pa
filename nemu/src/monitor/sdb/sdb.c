@@ -56,17 +56,17 @@ static int cmd_q(char *args) {
 
 static int cmd_si(char *args) {
   int step = 1;
+  char *token = strtok(args, " ");
 
-  if (args != NULL) {
+  if (token != NULL) {
     char *endptr;
     // 保证输入的是整数，而不是类似12ab或者1.34
-    step = strtol(args, &endptr, 10);
+    step = strtol(token, &endptr, 10);
     // 保证只能有一个额外参数
-    args = strtok(args, " ");
-    args = strtok(NULL, " ");
+    token = strtok(NULL, " ");
     if ((*endptr) != '\0') {
       panic("step into arg failed!\n");
-    } else if (args != NULL) {
+    } else if (token != NULL) {
       panic("error near %s\n", args);
     }
   }
