@@ -1,6 +1,7 @@
 /***************************************************************************************
 * Copyright (c) 2014-2024 Zihao Yu, Nanjing University
 *
+
 * NEMU is licensed under Mulan PSL v2.
 * You can use this software according to the terms and conditions of the Mulan PSL v2.
 * You may obtain a copy of Mulan PSL v2 at:
@@ -23,7 +24,17 @@ const char *regs[] = {
   "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 };
 
+
+/**
+rax            0x555555555129      93824992235817                                                                       rbx            0x7fffffffe4b8      140737488348344                                                                      rcx            0x555555557df8      93824992247288                                                                       rdx            0x7fffffffe4c8      140737488348360
+rsi            0x7fffffffe4b8      140737488348344
+ */
+#define NR_REGS_TABLE ARRLEN(regs)
 void isa_reg_display() {
+  printf("%-15s %-15lx %-15ld\n", "pc", cpu.pc, cpu.pc);
+  for (int i = 0; i < NR_REGS_TABLE; i++) {
+    printf("%-15s %-15lx %-15ld\n", regs[i], cpu.gpr[i], cpu.gpr[i]);
+  }
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {

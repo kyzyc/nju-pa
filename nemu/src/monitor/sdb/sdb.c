@@ -18,6 +18,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <stdio.h>
+#include <string.h>
 #include "sdb.h"
 #include "debug.h"
 
@@ -76,6 +77,27 @@ static int cmd_si(char *args) {
   return 0;
 }
 
+static int cmd_info(char *args) {
+  int len = strlen(args);
+  char *token = strtok(args, " ");
+
+  if (token == NULL) {
+    panic("info command must has arg, either r or w");
+  } else if (strlen(token) != len) {
+    panic("info only can have one argument!");
+  }
+
+  if (strcmp(token, "r") == 0)
+    isa_reg_display();
+  else if (strcmp(token, "w") == 0) {
+
+  } else {
+    panic("Unknown command '%s'\n", token);
+  }
+  
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -89,6 +111,7 @@ static struct {
 
   /* TODO: Add more commands */
   { "si", "Step Into", cmd_si},
+  { "info", "Print Program Status", cmd_info},
 };
 
 #define NR_CMD ARRLEN(cmd_table)
