@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "debug.h"
 #include <isa.h>
 #include <memory/paddr.h>
 
@@ -119,6 +120,8 @@ void init_monitor(int argc, char *argv[]) {
 
   /* Load the image to memory. This will overwrite the built-in image. */
   long img_size = load_img();
+
+  // Log("img_size: %ld\n", img_size);
 
   /* Initialize differential testing. */
   init_difftest(diff_so_file, img_size, difftest_port);
