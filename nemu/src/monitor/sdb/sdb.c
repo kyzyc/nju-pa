@@ -58,11 +58,14 @@ static int cmd_si(char *args) {
   int step = 1;
 
   if (args != NULL) {
-    int ret = sscanf(args, "%d", &step);
+    char *endptr;
+    // 保证输入的是整数，而不是类似12ab或者1.34
+    step = strtol(args, &endptr, 10);
+    // 保证只能有一个额外参数
     args = strtok(args, " ");
     args = strtok(NULL, " ");
-    if (ret == EOF || ret == 0) {
-      panic("step into args failed!\n");
+    if ((*endptr) != '\0') {
+      panic("step into arg failed!\n");
     } else if (args != NULL) {
       panic("error near %s\n", args);
     }
