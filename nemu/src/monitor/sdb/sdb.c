@@ -67,11 +67,8 @@ static int cmd_si(char *args) {
     step = strtol(token, &endptr, 10);
     // 保证只能有一个额外参数
     token = strtok(NULL, " ");
-    if ((*endptr) != '\0') {
-      panic("step into arg failed!\n");
-    } else if (token != NULL) {
-      panic("error near %s\n", args);
-    }
+    Assert((*endptr) == '\0', "step into arg failed!");
+    Assert(token == NULL, "error near %s", args);
   }
 
   cpu_exec(step);
@@ -83,18 +80,15 @@ static int cmd_info(char *args) {
   int len = strlen(args);
   char *token = strtok(args, " ");
 
-  if (token == NULL) {
-    panic("info command must has arg, either r or w");
-  } else if (strlen(token) != len) {
-    panic("info only can have one argument!");
-  }
+  Assert(token != NULL, "info command must has arg, either r or w");
+  Assert(strlen(token) == len, "info only can have one argument!");
 
   if (strcmp(token, "r") == 0)
     isa_reg_display();
   else if (strcmp(token, "w") == 0) {
 
   } else {
-    panic("Unknown command '%s'\n", token);
+    panic("Unknown command argument '%s'\n", token);
   }
 
   return 0;
