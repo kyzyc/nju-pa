@@ -17,7 +17,9 @@
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <stdio.h>
 #include "sdb.h"
+#include "debug.h"
 
 static int is_batch_mode = false;
 
@@ -52,6 +54,25 @@ static int cmd_q(char *args) {
   return -1;
 }
 
+static int cmd_si(char *args) {
+  int step = 1;
+
+  if (args != NULL) {
+    int ret = sscanf(args, "%d", &step);
+    args = strtok(args, " ");
+    args = strtok(NULL, " ");
+    if (ret == EOF || ret == 0) {
+      panic("step into args failed!\n");
+    } else if (args != NULL) {
+      panic("error near %s\n", args);
+    }
+  }
+
+  cpu_exec(step);
+
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -64,7 +85,7 @@ static struct {
   { "q", "Exit NEMU", cmd_q },
 
   /* TODO: Add more commands */
-
+  { "si", "Step Into", cmd_si},
 };
 
 #define NR_CMD ARRLEN(cmd_table)
