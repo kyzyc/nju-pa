@@ -19,8 +19,10 @@
 #include <readline/history.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include "sdb.h"
 #include "debug.h"
+#include <memory/vaddr.h>
 
 static int is_batch_mode = false;
 
@@ -94,7 +96,51 @@ static int cmd_info(char *args) {
   } else {
     panic("Unknown command '%s'\n", token);
   }
-  
+
+  return 0;
+}
+
+/**
+(gdb) x/10 $pc
+0x555555555131 <main+8>:        0x000000b8      0xf3c35d00      0x48fa1e0f      0x4808ec83
+0x555555555141 <_fini+9>:       0xc308c483      0x00000000      0x00000000      0x00000000
+0x555555555151: 0x00000000      0x00000000
+ */
+static int cmd_x(char *args) {
+  char *token = strtok(args, " ");
+  int N, expr_val;
+
+  Assert(token != NULL, "1: x command must have two arguments, usage: x <N> <EXPR>");
+
+  char *endptr;
+  N = strtol(token, &endptr, 10);
+  Assert((*endptr) == '\0', "the first argument in x command must be a number!");
+
+  token = strtok(NULL, " ");
+  Assert(token != NULL, "2: x command must have two arguments, usage: x <N> <EXPR>");
+
+  expr_val = strtol(token, &endptr, 16);
+  Assert((*endptr) == '\0', "the second argument in x command must be a hex number!");
+
+  token = strtok(NULL, " ");
+  Assert(token == NULL, "x command only can have two arguments!");
+
+  for (int i = 0, j = 0; i < N; i++) {
+    if (j == 0) {
+      printf("0x%-15x", expr_val + i * 4);
+    } 
+    printf("0x%08lx\t", vaddr_read(expr_val + i * 4, 4));
+    
+    if ((++j) == 4) {
+      j = 0;
+      printf("\n");
+    }
+  }
+
+  if (N % 4 != 0) {
+    printf("\n");
+  }
+
   return 0;
 }
 
@@ -112,6 +158,7 @@ static struct {
   /* TODO: Add more commands */
   { "si", "Step Into", cmd_si},
   { "info", "Print Program Status", cmd_info},
+  { "x", "Scan Memory", cmd_x},
 };
 
 #define NR_CMD ARRLEN(cmd_table)
