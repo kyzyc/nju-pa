@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "common.h"
 #include "debug.h"
 #include <isa.h>
 
@@ -83,8 +84,6 @@ static bool make_token(char *e) {
   int i;
   regmatch_t pmatch;
 
-  int index = 0;
-
   nr_token = 0;
 
   while (e[position] != '\0') {
@@ -106,15 +105,15 @@ static bool make_token(char *e) {
         switch (rules[i].token_type) {
           case TK_NOTYPE:  break;
           case TK_DECIMAL: Assert(substr_len < 32, "token str too long!");
-                           tokens[index].type = rules[i].token_type;
-                           memcpy(tokens[index].str, substr_start, substr_len); \
-                           index++; break;
+                           tokens[nr_token].type = rules[i].token_type;
+                           memcpy(tokens[nr_token].str, substr_start, substr_len); \
+                           nr_token++; break;
           case '(':
           case ')':
           case '+':        
           case '-':
           case '*':        
-          case '/':        tokens[index].type = rules[i].token_type; index++; break;
+          case '/':        tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           default:         panic("unknown token type");
         }
 
@@ -128,11 +127,81 @@ static bool make_token(char *e) {
     }
   }
 
-  for (int i = 0; i < index; i++) {
-    printf("token type: %d\t token value: %s\n", tokens[i].type, tokens[i].str);
+  return true;
+}
+
+bool check_parentheses(int p, int q) {
+  int lp = 0;
+
+  for (int i = p; i <= q; i++) {
+    if (tokens[i].type == '(') {
+      lp++;
+    } else if (tokens[i].type == ')') {
+      if (lp == 0) {
+        panic("left param and right param don't match!\n");
+      }
+      lp--;
+    }
   }
 
-  return true;
+  return (tokens[p].type == '(' && tokens[q].type == ')') && lp == 0;
+}
+
+int find_position(int p, int q) {
+  int lp = 0;
+  int res = -1;
+
+  for (int i = q; i >= p; i--) {
+    if ((tokens[i].type == '+' || tokens[i].type == '-') && lp == 0) {
+      return i;
+    } else if (tokens[i].type == '(') {
+      lp++;
+    } else if (tokens[i].type == ')') {
+      lp--;
+    } else if ((tokens[i].type == '*' || tokens[i].type == '/') && lp == 0) {
+      res = i;
+    }
+  }
+
+  return res;
+}
+
+word_t eval(int p, int q) {
+  if (p > q) {
+    /* Bad expression */
+    panic("Bad expression\n");
+  }
+  else if (p == q) {
+    /* Single token.
+     * For now this token should be a number.
+     * Return the value of the number.
+     */
+     return atoi(tokens[p].str);
+  }
+  else if (check_parentheses(p, q) == true) {
+    /* The expression is surrounded by a matched pair of parentheses.
+     * If that is the case, just throw away the parentheses.
+     */
+    return eval(p + 1, q - 1);
+  }
+  else {
+    /* We should do more things here. */
+    // Assert(tokens[p].type == TK_DECIMAL && tokens[q].type == TK_DECIMAL, "p and q should all be decimal ints!");
+    // 4 +3*(2- 1)
+    int op = find_position(p, q);
+    Assert(op > p, "no op between p and q");
+
+    uint32_t val1 = eval(p, op - 1);
+    uint32_t val2 = eval(op + 1, q);
+
+    switch (tokens[op].type) {
+      case '+': return val1 + val2;
+      case '-': return val1 - val2;
+      case '*': return val1 * val2;
+      case '/': return val1 / val2;
+      default: Assert(0, "invalid op");
+    }
+  }
 }
 
 
@@ -142,10 +211,10 @@ word_t expr(char *e, bool *success) {
     return 0;
   }
 
+  word_t res = 0;
+
+  res = eval(0, nr_token - 1);
   *success = true;
 
-  /* TODO: Insert codes to evaluate the expression. */
-  // TODO();
-
-  return 0;
+  return res;
 }

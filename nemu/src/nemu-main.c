@@ -33,8 +33,9 @@ int main(int argc, char *argv[]) {
 #ifdef TEST_EXPR
 #include "monitor/sdb/sdb.h"
   bool success; 
-  expr("4 +3*(2- 1)", &success);
+  word_t ans = expr("4 +3*(2- 1)", &success);
   assert(success == true);
+  printf("ans: %ld\n", ans);
 #else
   /* Start engine. */
   engine_start();
