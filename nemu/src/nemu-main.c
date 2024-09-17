@@ -20,6 +20,8 @@ void am_init_monitor();
 void engine_start();
 int is_exit_status_bad();
 
+#define TEST_EXPR 1
+
 int main(int argc, char *argv[]) {
   /* Initialize the monitor. */
 #ifdef CONFIG_TARGET_AM
@@ -28,8 +30,15 @@ int main(int argc, char *argv[]) {
   init_monitor(argc, argv);
 #endif
 
+#ifdef TEST_EXPR
+#include "monitor/sdb/sdb.h"
+  bool success; 
+  expr("4 +3*(2- 1)", &success);
+  assert(success == true);
+#else
   /* Start engine. */
   engine_start();
+#endif
 
   return is_exit_status_bad();
 }

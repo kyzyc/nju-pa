@@ -13,18 +13,20 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "debug.h"
 #include <isa.h>
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
+#include <string.h>
 
 enum {
   TK_NOTYPE = 256, TK_EQ,
 
   /* TODO: Add more token types */
-
+  TK_DECIMAL, TK_DIVISION
 };
 
 static struct rule {
@@ -39,6 +41,12 @@ static struct rule {
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus
   {"==", TK_EQ},        // equal
+  {"[0-9]+", TK_DECIMAL},      // decimal integer
+  {"-", '-'},             // minus
+  {"/", '/'},             // division
+  {"\\*", '*'},           // multiple
+  {"\\(", '('},             // leftp
+  {"\\)", ')'},             // rightp
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -75,6 +83,8 @@ static bool make_token(char *e) {
   int i;
   regmatch_t pmatch;
 
+  int index = 0;
+
   nr_token = 0;
 
   while (e[position] != '\0') {
@@ -84,8 +94,8 @@ static bool make_token(char *e) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
-        Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
-            i, rules[i].regex, position, substr_len, substr_len, substr_start);
+        Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s, token type: %d",
+            i, rules[i].regex, position, substr_len, substr_len, substr_start, rules[i].token_type);
 
         position += substr_len;
 
@@ -93,9 +103,19 @@ static bool make_token(char *e) {
          * to record the token in the array `tokens'. For certain types
          * of tokens, some extra actions should be performed.
          */
-
         switch (rules[i].token_type) {
-          default: TODO();
+          case TK_NOTYPE:  break;
+          case TK_DECIMAL: Assert(substr_len < 32, "token str too long!");
+                           tokens[index].type = rules[i].token_type;
+                           memcpy(tokens[index].str, substr_start, substr_len); \
+                           index++; break;
+          case '(':
+          case ')':
+          case '+':        
+          case '-':
+          case '*':        
+          case '/':        tokens[index].type = rules[i].token_type; index++; break;
+          default:         panic("unknown token type");
         }
 
         break;
@@ -108,6 +128,10 @@ static bool make_token(char *e) {
     }
   }
 
+  for (int i = 0; i < index; i++) {
+    printf("token type: %d\t token value: %s\n", tokens[i].type, tokens[i].str);
+  }
+
   return true;
 }
 
@@ -118,8 +142,10 @@ word_t expr(char *e, bool *success) {
     return 0;
   }
 
+  *success = true;
+
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
+  // TODO();
 
   return 0;
 }
