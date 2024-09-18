@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+// #include "debug.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,17 +23,73 @@
 
 // this should be enough
 static char buf[65536] = {};
+static int idx = 0;
 static char code_buf[65536 + 128] = {}; // a little larger than `buf`
 static char *code_format =
 "#include <stdio.h>\n"
+"#include <stdint.h>\n"
 "int main() { "
-"  unsigned result = %s; "
-"  printf(\"%%u\", result); "
+"  uint64_t result = %s; "
+"  printf(\"%%lu\", result); "
 "  return 0; "
 "}";
 
+uint8_t choose(uint8_t n) {
+  return rand() % n;
+}
+
+void gen_blank() {
+  int numBlank = rand() % 5;
+
+  for (int i = 0; i < numBlank; i++) {
+    buf[idx++] = ' ';
+  }
+}
+
+void gen_num() {
+  gen_blank();
+  // 添加 (uint64_t) 前缀
+  const char *uint64_prefix = "(uint64_t)";
+  int prefix_len = strlen(uint64_prefix);
+  strcpy(&buf[idx], uint64_prefix);
+  idx += prefix_len;
+  int numBit = (rand() % 18) + 1;
+  buf[idx++] = '1' + rand() % 9;
+  for (int i = 0; i < numBit; i++) {
+    buf[idx++] = '0' + rand() % 10;
+  }
+  gen_blank();
+}
+
+void gen(char c) {
+  gen_blank();
+  buf[idx++] = c;
+  gen_blank();
+}
+
+static void gen_rand_expr();
+
+void gen_rand_op() {
+  gen_blank();
+  switch (choose(4)) {
+    case 0:  buf[idx++] = '+'; break;
+    case 1:  buf[idx++] = '-'; break;
+    case 2:  buf[idx++] = '*'; break;
+    default: buf[idx++] = '/'; break;
+  }
+  gen_blank();
+}
+
 static void gen_rand_expr() {
-  buf[0] = '\0';
+  if (65536 - idx < 10000) {
+    gen_num();
+    return;
+  }
+  switch (choose(3)) {
+    case 0:   gen_num(); break;
+    case 1:   gen('('); gen_rand_expr(); gen(')'); break;
+    default:  gen_rand_expr(); gen_rand_op(); gen_rand_expr(); break;
+  }
 }
 
 int main(int argc, char *argv[]) {
@@ -44,7 +101,10 @@ int main(int argc, char *argv[]) {
   }
   int i;
   for (i = 0; i < loop; i ++) {
+    idx = 0;
     gen_rand_expr();
+    buf[idx] = '\0';
+    assert(idx < 65536);
 
     sprintf(code_buf, code_format, buf);
 
@@ -53,17 +113,18 @@ int main(int argc, char *argv[]) {
     fputs(code_buf, fp);
     fclose(fp);
 
-    int ret = system("gcc /tmp/.code.c -o /tmp/.expr");
+    int ret = system("gcc -Werror=div-by-zero /tmp/.code.c -o /tmp/.expr");
     if (ret != 0) continue;
 
     fp = popen("/tmp/.expr", "r");
     assert(fp != NULL);
 
-    int result;
-    ret = fscanf(fp, "%d", &result);
-    pclose(fp);
+    uint64_t result;
+    ret = fscanf(fp, "%lu", &result);
+    ret = pclose(fp);
 
-    printf("%u %s\n", result, buf);
+    if (ret >= 0)
+    printf("%lu %s\n", result, buf);
   }
   return 0;
 }

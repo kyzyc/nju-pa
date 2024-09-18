@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include <common.h>
+#include <stdio.h>
 
 void init_monitor(int, char *[]);
 void am_init_monitor();
@@ -32,10 +33,36 @@ int main(int argc, char *argv[]) {
 
 #ifdef TEST_EXPR
 #include "monitor/sdb/sdb.h"
+  FILE *input_file = fopen("/home/zyc/ics2024/nemu/tools/gen-expr/build/input", "r");
+  if (input_file == NULL) {
+      perror("无法打开 input 文件");
+      return -1;
+  }
+  static char* buf, *buf2;
+  size_t buf_size = 65536;
+  ssize_t read;
+  buf = malloc(buf_size * sizeof(char));
+  buf2 = malloc(buf_size * sizeof(char));
+  uint64_t expected_result;
+
   bool success; 
-  word_t ans = expr("4 +3*(2- 1)", &success);
-  assert(success == true);
-  printf("ans: %ld\n", ans);
+  int cnt = 0;
+  while ((read = getline(&buf, &buf_size, input_file)) >= 0) {
+      if (buf[read - 1] != '\n') {
+        panic("yes\n");
+      }
+      buf[read - 1] = '\0';
+      sscanf(buf, "%lu %[^\n]", &expected_result, buf2);
+      // 调用 expr() 函数求值
+      uint64_t result = expr(buf2, &success);
+      cnt ++;
+      // 比较结果
+      Assert(success == true, "expr not success");
+      Assert(result == expected_result, "result not equal, expr:%s \nresult:%lu\t expect: %lu\n", buf, result, expected_result);
+  }
+  printf("all tests success! %d", cnt);
+  free(buf);
+  free(buf2);
 #else
   /* Start engine. */
   engine_start();

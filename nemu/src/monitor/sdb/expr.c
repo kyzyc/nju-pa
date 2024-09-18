@@ -76,7 +76,7 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[32] __attribute__((used)) = {};
+static Token tokens[65536] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -93,8 +93,8 @@ static bool make_token(char *e) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
-        Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s, token type: %d",
-            i, rules[i].regex, position, substr_len, substr_len, substr_start, rules[i].token_type);
+        Log("%d: match rules[%d] = \"%s\" at position %d with len %d: %.*s, token type: %d",
+            nr_token, i, rules[i].regex, position, substr_len, substr_len, substr_start, rules[i].token_type);
 
         position += substr_len;
 
@@ -106,7 +106,8 @@ static bool make_token(char *e) {
           case TK_NOTYPE:  break;
           case TK_DECIMAL: Assert(substr_len < 32, "token str too long!");
                            tokens[nr_token].type = rules[i].token_type;
-                           memcpy(tokens[nr_token].str, substr_start, substr_len); \
+                           memcpy(tokens[nr_token].str, substr_start, substr_len);            \
+                           tokens[nr_token].str[substr_len] = '\0';                                       \
                            nr_token++; break;
           case '(':
           case ')':
@@ -137,10 +138,12 @@ bool check_parentheses(int p, int q) {
     if (tokens[i].type == '(') {
       lp++;
     } else if (tokens[i].type == ')') {
-      if (lp == 0) {
-        panic("left param and right param don't match!\n");
-      }
       lp--;
+      if (lp < 0) {
+        panic("left param and right param don't match!\n");
+      } else if (lp == 0 && i != q) {
+        return false;
+      }
     }
   }
 
@@ -148,17 +151,17 @@ bool check_parentheses(int p, int q) {
 }
 
 int find_position(int p, int q) {
-  int lp = 0;
+  int rp = 0;
   int res = -1;
 
   for (int i = q; i >= p; i--) {
-    if ((tokens[i].type == '+' || tokens[i].type == '-') && lp == 0) {
+    if ((tokens[i].type == '+' || tokens[i].type == '-') && rp == 0) {
       return i;
-    } else if (tokens[i].type == '(') {
-      lp++;
     } else if (tokens[i].type == ')') {
-      lp--;
-    } else if ((tokens[i].type == '*' || tokens[i].type == '/') && lp == 0) {
+      rp++;
+    } else if (tokens[i].type == '(') {
+      rp--;
+    } else if ((tokens[i].type == '*' || tokens[i].type == '/') && rp == 0 && res == -1) {
       res = i;
     }
   }
@@ -176,7 +179,7 @@ word_t eval(int p, int q) {
      * For now this token should be a number.
      * Return the value of the number.
      */
-     return atoi(tokens[p].str);
+     return strtoull(tokens[p].str, NULL, 10);
   }
   else if (check_parentheses(p, q) == true) {
     /* The expression is surrounded by a matched pair of parentheses.
@@ -191,14 +194,13 @@ word_t eval(int p, int q) {
     int op = find_position(p, q);
     Assert(op > p, "no op between p and q");
 
-    uint32_t val1 = eval(p, op - 1);
-    uint32_t val2 = eval(op + 1, q);
-
+    uint64_t val1 = eval(p, op - 1);
+    uint64_t val2 = eval(op + 1, q);
     switch (tokens[op].type) {
       case '+': return val1 + val2;
       case '-': return val1 - val2;
       case '*': return val1 * val2;
-      case '/': return val1 / val2;
+      case '/': Assert(val2 != 0, "divide by zero!"); return val1 / val2;
       default: Assert(0, "invalid op");
     }
   }
