@@ -21,7 +21,7 @@ void am_init_monitor();
 void engine_start();
 int is_exit_status_bad();
 
-#define TEST_EXPR 1
+#undef TEST_EXPR
 
 int main(int argc, char *argv[]) {
   /* Initialize the monitor. */

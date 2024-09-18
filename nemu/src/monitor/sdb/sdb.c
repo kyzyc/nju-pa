@@ -138,6 +138,21 @@ static int cmd_x(char *args) {
   return 0;
 }
 
+static int cmd_p(char *args) {
+  static int cnt = 0;
+
+  bool success;
+  uint64_t ret = expr(args, &success);
+
+  if (success) {
+    printf("$%d = %lu\n", cnt++, ret);
+  } else {
+    printf("expression evaluation failed!\n");
+  }
+
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -153,6 +168,7 @@ static struct {
   { "si", "Step Into", cmd_si},
   { "info", "Print Program Status", cmd_info},
   { "x", "Scan Memory", cmd_x},
+  { "p", "Expression Evaluation", cmd_p},
 };
 
 #define NR_CMD ARRLEN(cmd_table)
