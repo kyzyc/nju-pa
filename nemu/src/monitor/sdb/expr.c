@@ -21,13 +21,15 @@
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
+#include <stdint.h>
 #include <string.h>
+#include <memory/vaddr.h>
 
 enum {
   TK_NOTYPE = 256, TK_EQ, TK_AND, TK_NOT_EQ,
 
   /* TODO: Add more token types */
-  TK_DECIMAL, TK_HEX, TK_REGS
+  TK_DECIMAL, TK_HEX, TK_REGS, TK_DEREF
 };
 
 static struct rule {
@@ -226,6 +228,10 @@ word_t eval(int p, int q) {
     /* We should do more things here. */
     // Assert(tokens[p].type == TK_DECIMAL && tokens[q].type == TK_DECIMAL, "p and q should all be decimal ints!");
     // 4 +3*(2- 1)
+    if (tokens[p].type == TK_DEREF) {
+      uint64_t val2 = eval(p + 1, q);
+      return vaddr_read(val2, sizeof(uint64_t));
+    }
     int op = find_position(p, q);
     Assert(op > p, "no op between p and q");
 
@@ -249,6 +255,13 @@ word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
     return 0;
+  }
+
+  for (int i = 0; i < nr_token; i ++) {
+    if (tokens[i].type == '*' && (i == 0 || (tokens[i - 1].type != TK_REGS && tokens[i - 1].type != TK_HEX \
+          && tokens[i - 1].type != TK_DECIMAL && tokens[i - 1].type != ')')) ) {
+      tokens[i].type = TK_DEREF;
+    }
   }
 
   *success = true;
