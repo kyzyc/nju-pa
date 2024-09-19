@@ -111,6 +111,7 @@ static bool make_token(char *e) {
                            memcpy(tokens[nr_token].str, substr_start, substr_len);            \
                            tokens[nr_token].str[substr_len] = '\0';                                       \
                            nr_token++; break;
+          case TK_EQ:
           case '(':
           case ')':
           case '+':        
@@ -153,22 +154,32 @@ bool check_parentheses(int p, int q) {
 }
 
 int find_position(int p, int q) {
+  static const int N = 3;
   int rp = 0;
-  int res = -1;
+  int index[N];
+  memset(index, 0xff, sizeof(int) * N);
 
   for (int i = q; i >= p; i--) {
-    if ((tokens[i].type == '+' || tokens[i].type == '-') && rp == 0) {
-      return i;
+    if ((tokens[i].type == TK_EQ) && rp == 0 && index[0] == -1) {
+      index[0] = i;
     } else if (tokens[i].type == ')') {
       rp++;
     } else if (tokens[i].type == '(') {
       rp--;
-    } else if ((tokens[i].type == '*' || tokens[i].type == '/') && rp == 0 && res == -1) {
-      res = i;
+    } else if ((tokens[i].type == '+' || tokens[i].type == '-') && rp == 0 && index[1] == -1) {
+      index[1] = i;
+    } else if ((tokens[i].type == '*' || tokens[i].type == '/') && rp == 0 && index[2] == -1) {
+      index[2] = i;
     }
   }
 
-  return res;
+  for (int i = 0; i < N; i++) {
+    if (index[i] != -1) {
+      return index[i];
+    }
+  }
+
+  return -1;
 }
 
 word_t eval(int p, int q) {
@@ -206,6 +217,7 @@ word_t eval(int p, int q) {
       case '-': return val1 - val2;
       case '*': return val1 * val2;
       case '/': Assert(val2 != 0, "divide by zero!"); return val1 / val2;
+      case TK_EQ: return val1 == val2;
       default: Assert(0, "invalid op");
     }
   }
