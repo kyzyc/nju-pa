@@ -46,8 +46,26 @@ void gen_blank() {
   }
 }
 
-void gen_num() {
-  gen_blank();
+void gen_hex_num() {
+  // 添加 (uint64_t) 前缀
+  static const char hex_map[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8',\
+         '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+  const char *uint64_prefix = "(uint64_t)";
+  int prefix_len = strlen(uint64_prefix);
+  strcpy(&buf[idx], uint64_prefix);
+  idx += prefix_len;
+  buf[idx++] = '0';
+  buf[idx++] = 'x';
+  buf[idx++] = '0' + rand() % 2;
+  int numBit = rand() % 9;
+
+  for (int i = 0; i < numBit; i++) {
+    buf[idx++] = hex_map[rand() % 16];
+  }
+  
+}
+
+void gen_decimal_num() {
   // 添加 (uint64_t) 前缀
   const char *uint64_prefix = "(uint64_t)";
   int prefix_len = strlen(uint64_prefix);
@@ -57,6 +75,17 @@ void gen_num() {
   buf[idx++] = '1' + rand() % 9;
   for (int i = 0; i < numBit; i++) {
     buf[idx++] = '0' + rand() % 10;
+  }
+}
+
+void gen_num() {
+  gen_blank();
+  int ra = rand() % 2;
+
+  if (ra == 0) {
+    gen_decimal_num();
+  } else {
+    gen_hex_num();
   }
   gen_blank();
 }
