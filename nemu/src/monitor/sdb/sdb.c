@@ -102,7 +102,7 @@ static int cmd_info(char *args) {
  */
 static int cmd_x(char *args) {
   char *token = strtok(args, " ");
-  int N, expr_val;
+  int N;
 
   Assert(token != NULL, "1: x command must have two arguments, usage: x <N> <EXPR>");
 
@@ -110,31 +110,26 @@ static int cmd_x(char *args) {
   N = strtol(token, &endptr, 10);
   Assert((*endptr) == '\0', "the first argument in x command must be a number!");
 
-  token = strtok(NULL, " ");
-  Assert(token != NULL, "2: x command must have two arguments, usage: x <N> <EXPR>");
-
-  expr_val = strtol(token, &endptr, 16);
-  Assert((*endptr) == '\0', "the second argument in x command must be a hex number!");
-
-  token = strtok(NULL, " ");
-  Assert(token == NULL, "x command only can have two arguments!");
+  bool success;
+  uint64_t result = expr(endptr + 1, &success);
+  if (success == false) {
+    printf("A syntax error in expression, near `%s'.", endptr + 1);
+  }
 
   for (int i = 0, j = 0; i < N; i++) {
     if (j == 0) {
-      printf("0x%-15x", expr_val + i * 4);
+      printf("0x%-15lx", result + i * 4);
     } 
-    printf("0x%08lx\t", vaddr_read(expr_val + i * 4, 4));
+    printf("0x%08lx\t", vaddr_read(result + i * 4, 4));
     
     if ((++j) == 4) {
       j = 0;
       printf("\n");
     }
   }
-
   if (N % 4 != 0) {
     printf("\n");
   }
-
   return 0;
 }
 
