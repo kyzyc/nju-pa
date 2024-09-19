@@ -24,7 +24,7 @@
 #include <string.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ,
+  TK_NOTYPE = 256, TK_EQ, TK_AND, TK_NOT_EQ,
 
   /* TODO: Add more token types */
   TK_DECIMAL, TK_HEX
@@ -42,6 +42,8 @@ static struct rule {
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus
   {"==", TK_EQ},        // equal
+  {"!=", TK_NOT_EQ},        // not equal
+  {"&&", TK_AND},        // AND
   {"0x[0-9a-f]+", TK_HEX},      // hex number
   {"[0-9]+", TK_DECIMAL},      // decimal integer
   {"-", '-'},             // minus
@@ -112,6 +114,8 @@ static bool make_token(char *e) {
                            tokens[nr_token].str[substr_len] = '\0';                                       \
                            nr_token++; break;
           case TK_EQ:
+          case TK_NOT_EQ:
+          case TK_AND:
           case '(':
           case ')':
           case '+':        
@@ -154,22 +158,24 @@ bool check_parentheses(int p, int q) {
 }
 
 int find_position(int p, int q) {
-  static const int N = 3;
+  static const int N = 4;
   int rp = 0;
   int index[N];
   memset(index, 0xff, sizeof(int) * N);
 
   for (int i = q; i >= p; i--) {
-    if ((tokens[i].type == TK_EQ) && rp == 0 && index[0] == -1) {
+    if ((tokens[i].type == TK_AND) && rp == 0 && index[0] == -1) {
       index[0] = i;
+    } else if ((tokens[i].type == TK_EQ || tokens[i].type == TK_NOT_EQ) && rp == 0 && index[1] == -1) {
+      index[1] = i;
     } else if (tokens[i].type == ')') {
       rp++;
     } else if (tokens[i].type == '(') {
       rp--;
-    } else if ((tokens[i].type == '+' || tokens[i].type == '-') && rp == 0 && index[1] == -1) {
-      index[1] = i;
-    } else if ((tokens[i].type == '*' || tokens[i].type == '/') && rp == 0 && index[2] == -1) {
+    } else if ((tokens[i].type == '+' || tokens[i].type == '-') && rp == 0 && index[2] == -1) {
       index[2] = i;
+    } else if ((tokens[i].type == '*' || tokens[i].type == '/') && rp == 0 && index[3] == -1) {
+      index[3] = i;
     }
   }
 
@@ -218,6 +224,8 @@ word_t eval(int p, int q) {
       case '*': return val1 * val2;
       case '/': Assert(val2 != 0, "divide by zero!"); return val1 / val2;
       case TK_EQ: return val1 == val2;
+      case TK_NOT_EQ: return val1 != val2;
+      case TK_AND: return val1 && val2;
       default: Assert(0, "invalid op");
     }
   }

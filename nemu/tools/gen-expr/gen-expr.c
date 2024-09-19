@@ -100,11 +100,13 @@ static void gen_rand_expr();
 
 void gen_rand_op() {
   gen_blank();
-  switch (choose(5)) {
+  switch (choose(7)) {
     case 0:  buf[idx++] = '+'; break;
     case 1:  buf[idx++] = '-'; break;
     case 2:  buf[idx++] = '*'; break;
     case 3:  buf[idx++] = '='; buf[idx++] = '='; break;
+    case 4:  buf[idx++] = '!'; buf[idx++] = '='; break;
+    case 5:  buf[idx++] = '&'; buf[idx++] = '&'; break;
     default: buf[idx++] = '/'; break;
   }
   gen_blank();
