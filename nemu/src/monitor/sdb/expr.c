@@ -27,7 +27,7 @@ enum {
   TK_NOTYPE = 256, TK_EQ, TK_AND, TK_NOT_EQ,
 
   /* TODO: Add more token types */
-  TK_DECIMAL, TK_HEX
+  TK_DECIMAL, TK_HEX, TK_REGS
 };
 
 static struct rule {
@@ -44,6 +44,7 @@ static struct rule {
   {"==", TK_EQ},        // equal
   {"!=", TK_NOT_EQ},        // not equal
   {"&&", TK_AND},        // AND
+  {"\\$[0a-z]+", TK_REGS},   // registers
   {"0x[0-9a-f]+", TK_HEX},      // hex number
   {"[0-9]+", TK_DECIMAL},      // decimal integer
   {"-", '-'},             // minus
@@ -107,6 +108,7 @@ static bool make_token(char *e) {
          */
         switch (rules[i].token_type) {
           case TK_NOTYPE:  break;
+          case TK_REGS:
           case TK_HEX:
           case TK_DECIMAL: Assert(substr_len < 32, "token str too long!");
                            tokens[nr_token].type = rules[i].token_type;
@@ -200,8 +202,19 @@ word_t eval(int p, int q) {
      */
     if (tokens[p].type == TK_DECIMAL)
       return strtoull(tokens[p].str, NULL, 10);
-    else
+    else if (tokens[p].type == TK_HEX)
       return strtoull(tokens[p].str, NULL, 16);
+    else {
+      // registers
+      bool success;
+      uint64_t ret = isa_reg_str2val(tokens[p].str + 1, &success);
+
+      if (success) {
+        return ret;
+      } else {
+        panic("register name %s not exists\n", tokens[p].str + 1);
+      }
+    }
   }
   else if (check_parentheses(p, q) == true) {
     /* The expression is surrounded by a matched pair of parentheses.
