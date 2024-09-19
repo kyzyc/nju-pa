@@ -27,7 +27,7 @@ enum {
   TK_NOTYPE = 256, TK_EQ,
 
   /* TODO: Add more token types */
-  TK_DECIMAL, TK_DIVISION
+  TK_DECIMAL, TK_HEX
 };
 
 static struct rule {
@@ -42,6 +42,7 @@ static struct rule {
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus
   {"==", TK_EQ},        // equal
+  {"0x[0-9]+", TK_HEX},      // hex number
   {"[0-9]+", TK_DECIMAL},      // decimal integer
   {"-", '-'},             // minus
   {"/", '/'},             // division
@@ -76,7 +77,7 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[65536] __attribute__((used)) = {};
+static Token tokens[32] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -104,6 +105,7 @@ static bool make_token(char *e) {
          */
         switch (rules[i].token_type) {
           case TK_NOTYPE:  break;
+          case TK_HEX:
           case TK_DECIMAL: Assert(substr_len < 32, "token str too long!");
                            tokens[nr_token].type = rules[i].token_type;
                            memcpy(tokens[nr_token].str, substr_start, substr_len);            \
@@ -179,7 +181,10 @@ word_t eval(int p, int q) {
      * For now this token should be a number.
      * Return the value of the number.
      */
-     return strtoull(tokens[p].str, NULL, 10);
+    if (tokens[p].type == TK_DECIMAL)
+      return strtoull(tokens[p].str, NULL, 10);
+    else
+      return strtoull(tokens[p].str, NULL, 16);
   }
   else if (check_parentheses(p, q) == true) {
     /* The expression is surrounded by a matched pair of parentheses.
@@ -213,10 +218,6 @@ word_t expr(char *e, bool *success) {
     return 0;
   }
 
-  word_t res = 0;
-
-  res = eval(0, nr_token - 1);
   *success = true;
-
-  return res;
+  return eval(0, nr_token - 1);
 }

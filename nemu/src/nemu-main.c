@@ -14,7 +14,6 @@
 ***************************************************************************************/
 
 #include <common.h>
-#include <stdio.h>
 
 void init_monitor(int, char *[]);
 void am_init_monitor();
@@ -33,6 +32,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef TEST_EXPR
 #include "monitor/sdb/sdb.h"
+#include <stdio.h>
   FILE *input_file = fopen("/home/zyc/ics2024/nemu/tools/gen-expr/build/input", "r");
   if (input_file == NULL) {
       perror("无法打开 input 文件");
