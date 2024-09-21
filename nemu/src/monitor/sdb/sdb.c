@@ -29,6 +29,9 @@ static int is_batch_mode = false;
 void init_regex();
 void init_wp_pool();
 
+WP* new_wp();
+void free_wp(WP *wp);
+
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {
   static char *line_read = NULL;
@@ -148,6 +151,25 @@ static int cmd_p(char *args) {
   return 0;
 }
 
+static int cmd_w(char* args) {
+  Assert(args != NULL, "watch command must have expression as argument");
+
+  WP* nW = new_wp();
+
+  nW->expr = (char*)malloc(sizeof(char) * (strlen(args) + 1));
+
+  strcpy(nW->expr, args);
+
+  bool success;
+  nW->last_value = expr(nW->expr, &success);
+
+  Assert(success == true, "give watchpoint initial value failed");
+
+  printf("watchpoint %d: %s, initial value: %lu\n", nW->NO, nW->expr, nW->last_value);
+
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -164,6 +186,7 @@ static struct {
   { "info", "Print Program Status", cmd_info},
   { "x", "Scan Memory", cmd_x},
   { "p", "Expression Evaluation", cmd_p},
+  { "w", "Setting Watchpoints", cmd_w},
 };
 
 #define NR_CMD ARRLEN(cmd_table)

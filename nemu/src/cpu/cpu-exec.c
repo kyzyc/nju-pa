@@ -17,6 +17,7 @@
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
 #include <locale.h>
+#include "../monitor/sdb/sdb.h"
 
 /* The assembly code of instructions executed is only output to the screen
  * when the number of instructions executed is less than this value.
@@ -32,12 +33,29 @@ static bool g_print_step = false;
 
 void device_update();
 
+uint8_t detect_wp_change(CWP** vec_wp);
+
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
   if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+
+// #ifdef CONFIG_WATCHPOINT
+  CWP* vec_wp = NULL;
+
+  uint8_t ret = detect_wp_change(&vec_wp);
+
+  if (ret != 0) {
+    for (int i = 0; i < ret; i++) {
+      printf("\nwatchpoint %d: %s\n\n", vec_wp[i].wp->NO, vec_wp[i].wp->expr);
+      printf("Old vaule = %lu\n", vec_wp[i].old_value);
+      printf("New vaule = %lu\n", vec_wp[i].wp->last_value);
+    }
+    free(vec_wp);
+  }
+// #endif
 }
 
 static void exec_once(Decode *s, vaddr_t pc) {
