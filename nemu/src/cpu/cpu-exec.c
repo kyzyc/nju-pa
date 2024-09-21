@@ -42,7 +42,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
 
-// #ifdef CONFIG_WATCHPOINT
+#ifdef CONFIG_CC_TRACE_AND_DIFFTEST
   CWP* vec_wp = NULL;
 
   uint8_t ret = detect_wp_change(&vec_wp);
@@ -55,7 +55,7 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
     }
     free(vec_wp);
   }
-// #endif
+#endif
 }
 
 static void exec_once(Decode *s, vaddr_t pc) {
