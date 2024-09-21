@@ -29,6 +29,7 @@ static int is_batch_mode = false;
 void init_regex();
 void init_wp_pool();
 
+void print_wps();
 WP* new_wp();
 void free_wp(WP *wp);
 
@@ -89,7 +90,7 @@ static int cmd_info(char *args) {
   if (strcmp(token, "r") == 0)
     isa_reg_display();
   else if (strcmp(token, "w") == 0) {
-
+    print_wps();
   } else {
     panic("Unknown command argument '%s'\n", token);
   }

@@ -67,11 +67,6 @@ uint8_t detect_wp_change(CWP** vec_wp) {
     bool success;
     uint64_t ret = expr(cur->expr, &success);
 
-    // printf("ret: %lu\n", ret);
-    // printf("expr: %s\n", cur->expr);
-    // printf("last_value: %lu\n", cur->last_value);
-    // printf("NO: %d\n", cur->NO);
-
     Assert(success == true, "expression evaluation failed");
 
     if (ret != cur->last_value) {
@@ -85,6 +80,17 @@ uint8_t detect_wp_change(CWP** vec_wp) {
   }
 
   return size;
+}
+
+void print_wps() {
+  if (head == NULL) {
+    printf("No watchpoints.\n");
+  }
+
+  printf("%-10s%-20s\n", "Num", "What");
+  for (WP* cur = head; cur != NULL; cur = cur->next) {
+    printf("%-10d%-20s\n", cur->NO, cur->expr);
+  }
 }
 
 
