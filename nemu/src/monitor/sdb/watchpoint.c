@@ -49,13 +49,39 @@ WP* new_wp() {
   return p;
 }
 
-void free_wp(WP *wp) {
+void free_wp(WP *wp, WP* parent) {
+  if (parent == NULL) {
+    head = wp->next;
+  } else {
+    parent->next = wp->next;
+  }
+
   free(wp->expr);
   wp->expr = NULL;
   wp->last_value = 0;
 
   wp->next = free_;
   free_ = wp;
+}
+
+WP* find_wp_with_index(int NO, WP** parent) {
+  if (head == NULL) {
+    return NULL;
+  }
+
+  if (head->NO == NO) {
+    *parent = NULL;
+    return head;
+  }
+
+  for (WP* cur = head; cur->next != NULL; cur = cur->next) {
+    if (cur->next->NO == NO) {
+      *parent = cur;
+      return cur->next;
+    }
+  }
+
+  return NULL;
 }
 
 uint8_t detect_wp_change(CWP** vec_wp) {
@@ -85,6 +111,7 @@ uint8_t detect_wp_change(CWP** vec_wp) {
 void print_wps() {
   if (head == NULL) {
     printf("No watchpoints.\n");
+    return;
   }
 
   printf("%-10s%-20s\n", "Num", "What");

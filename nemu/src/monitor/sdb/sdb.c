@@ -31,7 +31,8 @@ void init_wp_pool();
 
 void print_wps();
 WP* new_wp();
-void free_wp(WP *wp);
+void free_wp(WP *wp, WP* parent);
+WP* find_wp_with_index(int NO, WP** parent);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {
@@ -171,6 +172,33 @@ static int cmd_w(char* args) {
   return 0;
 }
 
+static int cmd_d(char* args) {
+  Assert(args != NULL, "delete command must have a number as argument");
+
+  int NO;
+  char *token = strtok(args, " ");
+
+  if (token != NULL) {
+    char *endptr;
+    // 保证输入的是整数，而不是类似12ab或者1.34
+    NO = strtol(token, &endptr, 10);
+    // 保证只能有一个额外参数
+    token = strtok(NULL, " ");
+    Assert((*endptr) == '\0', "step into arg failed!");
+    Assert(token == NULL, "error near %s", args);
+
+    WP* parent;
+    WP* cur = find_wp_with_index(NO, &parent);
+    if (cur == NULL) {
+      printf("No breakpoint number %d.\n", NO);
+    } else {
+      free_wp(cur, parent);
+    }
+  }
+
+  return 0;
+}
+
 static int cmd_help(char *args);
 
 static struct {
@@ -188,6 +216,7 @@ static struct {
   { "x", "Scan Memory", cmd_x},
   { "p", "Expression Evaluation", cmd_p},
   { "w", "Setting Watchpoints", cmd_w},
+  { "d", "Delete Watchpoint", cmd_d},
 };
 
 #define NR_CMD ARRLEN(cmd_table)
