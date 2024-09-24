@@ -34,12 +34,13 @@ NEMU_EXEC := $(BINARY) $(ARGS) $(IMG)
 run-env: $(BINARY) $(DIFF_REF_SO)
 
 run: run-env
+	@/bin/echo $(ARGS)
 	$(call git_commit, "run NEMU")
 	$(NEMU_EXEC)
 
 gdb: run-env
 	$(call git_commit, "gdb NEMU")
-	gdb -s $(BINARY) --args $(NEMU_EXEC)
+	gdb -s $(BINARY)
 
 count:
 	/home/zyc/ics2024/nemu/count.sh
