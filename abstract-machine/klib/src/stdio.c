@@ -46,6 +46,7 @@ int sprintf(char *out, const char *fmt, ...) {
       q++;
     }
   }
+  *q = '\0';
 
   return q - out;
 }
