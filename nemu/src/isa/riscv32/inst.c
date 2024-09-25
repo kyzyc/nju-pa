@@ -111,7 +111,7 @@ static int decode_exec(Decode *s) {
   INSTPAT("??????? ????? ????? 110 ????? 11000 11", bltu   , B, if (src1 < src2) { s->dnpc = s->pc + imm; } );
   INSTPAT("??????? ????? ????? 100 ????? 11000 11", blt    , B, if ((int64_t)src1 < (int64_t)src2) { s->dnpc = s->pc + imm; } );
   INSTPAT("0000001 ????? ????? 100 ????? 01110 11", divw   , R, R(rd) = SEXT(BITS(src1, 31, 0) / BITS(src2, 31, 0), 32));
-  INSTPAT("0000001 ????? ????? 110 ????? 01110 11", remw   , R, R(rd) = SEXT((int32_t)BITS(src1, 31, 0) % (int32_t)BITS(src2, 31, 0), 32) );
+  INSTPAT("0000001 ????? ????? 110 ????? 01110 11", remw   , R, if ((int32_t)BITS(src2, 31, 0) == -1) { R(rd) = 0;} else if ((int32_t)BITS(src2, 31, 0) == 0) { R(rd) = src1; } else R(rd) = SEXT((int32_t)BITS(src1, 31, 0) % (int32_t)BITS(src2, 31, 0), 32) );
   INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem    , R, if (((int64_t)src2) == -1) { R(rd) = 0;} else if (src2 == 0) { R(rd) = src1; } else R(rd) = ((int64_t)src1) % ((int64_t)src2) );
 
   INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
