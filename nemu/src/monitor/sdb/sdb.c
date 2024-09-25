@@ -145,7 +145,7 @@ static int cmd_p(char *args) {
   uint64_t ret = expr(args, &success);
 
   if (success) {
-    printf("$%d = %lu\n", cnt++, ret);
+    printf("$%d = 0x%lx\n", cnt++, ret);
   } else {
     printf("expression evaluation failed!\n");
   }
@@ -167,7 +167,7 @@ static int cmd_w(char* args) {
 
   Assert(success == true, "give watchpoint initial value failed");
 
-  printf("watchpoint %d: %s, initial value: %lu\n", nW->NO, nW->expr, nW->last_value);
+  printf("watchpoint %d: %s, initial value: 0x%lx\n", nW->NO, nW->expr, nW->last_value);
 
   return 0;
 }
