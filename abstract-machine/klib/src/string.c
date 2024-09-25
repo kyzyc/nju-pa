@@ -4,7 +4,33 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-size_t strlen(const char *s) { panic("Not implemented"); }
+int itoa(int num, char *dst/*, int base*/) {
+  char number[32];
+  int idx = 0;
+
+  for (; num; num /= 10) {
+    number[idx++] = ((num % 10) + '0');
+  }
+
+  int cnt = idx;
+
+  for (idx = idx - 1; idx >= 0; idx--, dst++) {
+    *dst = number[idx];
+  }
+
+  return cnt;
+}
+
+size_t strlen(const char *s) {
+  size_t res = 0;
+
+  while ((*s) != '\0') {
+    s++;
+    res++;
+  }
+
+  return res;
+}
 
 char *strcpy(char *dst, const char *src) {
   char *p = dst;
