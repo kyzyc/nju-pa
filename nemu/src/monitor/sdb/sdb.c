@@ -57,7 +57,6 @@ static int cmd_c(char *args) {
   return 0;
 }
 
-
 static int cmd_q(char *args) {
   return -1;
 }
@@ -116,16 +115,25 @@ static int cmd_x(char *args) {
   Assert((*endptr) == '\0', "the first argument in x command must be a number!");
 
   bool success;
-  uint64_t result = expr(endptr + 1, &success);
+  word_t result = expr(endptr + 1, &success);
   if (success == false) {
     printf("A syntax error in expression, near `%s'.", endptr + 1);
   }
 
   for (int i = 0, j = 0; i < N; i++) {
     if (j == 0) {
+      #ifdef CONFIG_ISA64
       printf("0x%-15lx", result + i * 4);
-    } 
+      #else
+      printf("0x%-15x", result + i * 4);
+      #endif
+      
+    }
+    #ifdef CONFIG_ISA64
     printf("0x%08lx\t", vaddr_read(result + i * 4, 4));
+    #else
+    printf("0x%08x\t", vaddr_read(result + i * 4, 4));
+    #endif
     
     if ((++j) == 4) {
       j = 0;

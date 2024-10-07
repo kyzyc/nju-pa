@@ -31,9 +31,17 @@ rsi            0x7fffffffe4b8      140737488348344
  */
 #define NR_REGS_TABLE ARRLEN(regs)
 void isa_reg_display() {
-  printf("%-15s %-15lx %-15ld\n", "pc", cpu.pc, cpu.pc);
+  #ifdef CONFIG_ISA64
+    printf("%-15s %-15lx %-15ld\n", "pc", cpu.pc, cpu.pc);
+  #else
+    printf("%-15s %-15x %-15d\n", "pc", cpu.pc, cpu.pc);
+  #endif
   for (int i = 0; i < NR_REGS_TABLE; i++) {
+    #ifdef CONFIG_ISA64
     printf("%-15s %-15lx %-15ld\n", regs[i], cpu.gpr[i], cpu.gpr[i]);
+  #else
+    printf("%-15s %-15x %-15d\n", regs[i], cpu.gpr[i], cpu.gpr[i]);
+  #endif
   }
 }
 
