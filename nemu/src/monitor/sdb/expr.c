@@ -29,7 +29,7 @@ enum {
   TK_NOTYPE = 256, TK_EQ, TK_AND, TK_NOT_EQ,
 
   /* TODO: Add more token types */
-  TK_DECIMAL, TK_HEX, TK_REGS, TK_DEREF
+  TK_DECIMAL, TK_HEX, TK_REGS, TK_DEREF, TK_UNARY_MINUS
 };
 
 static struct rule {
@@ -231,6 +231,9 @@ word_t eval(int p, int q) {
     if (tokens[p].type == TK_DEREF) {
       word_t val2 = eval(p + 1, q);
       return vaddr_read(val2, sizeof(word_t));
+    } else if (tokens[p].type == TK_UNARY_MINUS) {
+      word_t val2 = eval(p + 1, q);
+      return -((sword_t)val2);
     }
     int op = find_position(p, q);
     Assert(op > p, "no op between p and q");
@@ -261,9 +264,11 @@ word_t expr(char *e, bool *success) {
     if (tokens[i].type == '*' && (i == 0 || (tokens[i - 1].type != TK_REGS && tokens[i - 1].type != TK_HEX \
           && tokens[i - 1].type != TK_DECIMAL && tokens[i - 1].type != ')')) ) {
       tokens[i].type = TK_DEREF;
+    } else if (tokens[i].type == '-' && (i == 0 || (tokens[i - 1].type != TK_REGS && tokens[i - 1].type != TK_HEX \
+          && tokens[i - 1].type != TK_DECIMAL && tokens[i - 1].type != ')')) ) {
+      tokens[i].type = TK_UNARY_MINUS;
     }
   }
-
   *success = true;
   return eval(0, nr_token - 1);
 }
