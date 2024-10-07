@@ -24,12 +24,12 @@ typedef struct watchpoint {
 
   /* TODO: Add more members if necessary */
   char* expr;
-  uint64_t last_value;
+  word_t last_value;
 } WP;
 
 typedef struct changed_watchpoint {
   WP* wp;
-  uint64_t old_value;
+  word_t old_value;
 } CWP;
 
 word_t expr(char *e, bool *success);

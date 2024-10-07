@@ -50,8 +50,13 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   if (ret != 0) {
     for (int i = 0; i < ret; i++) {
       printf("\nwatchpoint %d: %s\n\n", vec_wp[i].wp->NO, vec_wp[i].wp->expr);
+      #ifdef CONFIG_ISA64
       printf("Old vaule = %lu\n", vec_wp[i].old_value);
       printf("New vaule = %lu\n", vec_wp[i].wp->last_value);
+      #else
+      printf("Old vaule = %u\n", vec_wp[i].old_value);
+      printf("New vaule = %u\n", vec_wp[i].wp->last_value);
+      #endif
     }
     free(vec_wp);
   }
