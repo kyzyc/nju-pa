@@ -91,7 +91,7 @@ uint8_t detect_wp_change(CWP** vec_wp) {
 
   for (WP* cur = head; cur != NULL; cur = cur->next) {
     bool success;
-    uint64_t ret = expr(cur->expr, &success);
+    word_t ret = expr(cur->expr, &success);
 
     Assert(success == true, "expression evaluation failed");
 

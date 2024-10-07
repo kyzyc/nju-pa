@@ -150,10 +150,14 @@ static int cmd_p(char *args) {
   static int cnt = 0;
 
   bool success;
-  uint64_t ret = expr(args, &success);
+  word_t ret = expr(args, &success);
 
   if (success) {
-    printf("$%d = 0x%lx\n", cnt++, ret);
+    #ifdef CONFIG_ISA64
+    printf("$%d = %lu\n", cnt++, ret);
+    #else
+    printf("$%d = %u\n", cnt++, ret);
+    #endif
   } else {
     printf("expression evaluation failed!\n");
   }
@@ -175,7 +179,11 @@ static int cmd_w(char* args) {
 
   Assert(success == true, "give watchpoint initial value failed");
 
-  printf("watchpoint %d: %s, initial value: 0x%lx\n", nW->NO, nW->expr, nW->last_value);
+  #ifdef CONFIG_ISA64
+  printf("watchpoint %d: %s, initial value: %lu\n", nW->NO, nW->expr, nW->last_value);
+  #else
+  printf("watchpoint %d: %s, initial value: %u\n", nW->NO, nW->expr, nW->last_value);
+  #endif
 
   return 0;
 }
