@@ -34,6 +34,7 @@ static bool g_print_step = false;
 void device_update();
 
 uint8_t detect_wp_change(CWP** vec_wp);
+int find_stat(vaddr_t pc, vaddr_t snpc);
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
@@ -63,10 +64,15 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
 }
 
+static void trace_func_call_ret(vaddr_t pc, vaddr_t dnpc) {
+  find_stat(pc, dnpc);
+}
+
 static void exec_once(Decode *s, vaddr_t pc) {
   s->pc = pc;
   s->snpc = pc;
   isa_exec_once(s);
+  IFDEF(CONFIG_ITRACE, trace_func_call_ret(pc, s->dnpc));
   cpu.pc = s->dnpc;
 #ifdef CONFIG_ITRACE
   char *p = s->logbuf;
