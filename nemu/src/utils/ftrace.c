@@ -52,7 +52,7 @@ static char *read_section32(int32_t fd, Elf32_Shdr *sh) {
   return buff;
 }
 
-static char *read_symbol(int32_t fd, Elf32_Ehdr *eh, Elf32_Shdr *sh,
+static void read_symbol(int32_t fd, Elf32_Ehdr *eh, Elf32_Shdr *sh,
                          uint32_t symbol_table) {
   //   uint32_t i, symbol_count;
 
@@ -75,7 +75,7 @@ static char *read_symbol(int32_t fd, Elf32_Ehdr *eh, Elf32_Shdr *sh,
   //     printf("%s\n", (str_tbl + sym_tbl[i].st_name));
   //   }
 
-  return NULL;
+  return;
 }
 
 void init_elf(const char *elf_file) {
@@ -157,7 +157,7 @@ int find_stat(vaddr_t pc, vaddr_t snpc) {
     } else {
       FTRACE_Log("0x%08x ", pc);
       PRINT_INDENT(indent_cnt - 1);
-      FTRACE_Log_newline("ret[%s]", (str_tbl + sym_tbl[snpcfid].st_name));
+      FTRACE_Log_newline("ret[%s]", (str_tbl + sym_tbl[pcfid].st_name));
       indent_cnt--;
     }
   }
