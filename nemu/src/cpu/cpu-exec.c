@@ -64,9 +64,11 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
 }
 
+#ifdef CONFIG_ITRACE
 static void trace_func_call_ret(vaddr_t pc, vaddr_t dnpc) {
   find_stat(pc, dnpc);
 }
+#endif
 
 static void exec_once(Decode *s, vaddr_t pc) {
   s->pc = pc;
