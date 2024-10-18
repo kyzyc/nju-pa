@@ -5,14 +5,20 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-int printf(const char *fmt, ...) { panic("Not implemented"); }
+int printf(const char *fmt, ...) {
+  char buf[512] = ""; // why must initialize???
+  va_list args;
+  va_start(args, fmt);
 
-int vsprintf(char *out, const char *fmt, va_list ap) {
-  panic("Not implemented");
+  int ret = vsprintf(buf, fmt, args);
+  va_end(args);
+
+  putstr(buf);
+
+  return ret;
 }
 
-int sprintf(char *out, const char *fmt, ...) {
-  va_list ap;
+int vsprintf(char *out, const char *fmt, va_list ap) {
   union {
     int iarg;
     const char *carg;
@@ -20,14 +26,17 @@ int sprintf(char *out, const char *fmt, ...) {
   char *q = out;
   int n;
 
-  va_start(ap, fmt);
-
   for (const char *p = fmt; (*p) != '\0'; p++) {
     if ((*p) == '%') {
       p++;
       switch (*p) {
         case 'd':
           arg.iarg = va_arg(ap, int);
+          if (arg.iarg < 0) {
+            *q = '-';
+            q++;
+            arg.iarg = (-arg.iarg);
+          }
           n = itoa(arg.iarg, q);
           q += n;
           break;
@@ -50,6 +59,14 @@ int sprintf(char *out, const char *fmt, ...) {
 
   return q - out;
 }
+
+int sprintf(char *out, const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+
+  return vsprintf(out, fmt, ap);
+}
+
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
   panic("Not implemented");

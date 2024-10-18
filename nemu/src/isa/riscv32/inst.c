@@ -226,6 +226,8 @@ static int decode_exec(Decode *s) {
           R(rd) = src1 & src2);
   INSTPAT("0000000 ????? ????? 011 ????? 01100 11", sltu, R,
           R(rd) = (src1 < src2 ? 1 : 0));
+  INSTPAT("0000000 ????? ????? 010 ????? 01100 11", slt, R,
+          R(rd) = ((sword_t)src1 < (sword_t)src2 ? 1 : 0));
   INSTPAT("??????? ????? ????? 100 ????? 00100 11", xori, I,
           R(rd) = src1 ^ imm);
   INSTPAT("0000000 ????? ????? 100 ????? 01100 11", xor, R,
@@ -273,12 +275,12 @@ static int decode_exec(Decode *s) {
   #endif
   INSTPAT(
       "0000001 ????? ????? 111 ????? 01100 11", remu, R,
-      if (((sword_t)src2) == -1) { R(rd) = 0; } else if (src2 == 0) {
+      if (src2 == 0) {
         R(rd) = src1;
       } else R(rd) = src1 % src2);
   INSTPAT(
       "0000001 ????? ????? 110 ????? 01100 11", rem, R,
-      if (((sword_t)src2) == -1) { R(rd) = 0; } else if (src2 == 0) {
+      if (((sword_t)src2) == -1 && (src1 == (1 << 31))) { R(rd) = 0; } else if (src2 == 0) {
         R(rd) = src1;
       } else R(rd) = ((sword_t)src1) % ((sword_t)src2));
 
