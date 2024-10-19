@@ -21,7 +21,8 @@ int printf(const char *fmt, ...) {
 int vsprintf(char *out, const char *fmt, va_list ap) {
   union {
     int iarg;
-    const char *carg;
+    const char *sarg;
+    char carg;
   } arg;
   char *q = out;
   int n;
@@ -41,13 +42,21 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
           q += n;
           break;
         case 's':
-          arg.carg = va_arg(ap, const char *);
-          n = strlen(arg.carg);
-          strcat(q, arg.carg);
+          arg.sarg = va_arg(ap, const char *);
+          n = strlen(arg.sarg);
+          strcat(q, arg.sarg);
           q += (n);
           break;
+        case 'c':
+          arg.carg = va_arg(ap, int);
+          *q = arg.carg;
+          q++;
+          break;
         default:
-          panic("unknown format specifer");
+          *q = *p;
+          q++;
+          // goto out;
+          // panic("unknown format specifer");
           break;
       }
     } else {
@@ -55,6 +64,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
       q++;
     }
   }
+// out:
   *q = '\0';
 
   return q - out;
