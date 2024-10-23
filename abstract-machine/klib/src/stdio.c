@@ -38,7 +38,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
             q++;
             arg.iarg = (-arg.iarg);
           }
-          n = itoa(arg.iarg, q);
+          n = itoa(arg.iarg, q, 10, 0);
           q += n;
           break;
         case 's':
@@ -46,6 +46,11 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
           n = strlen(arg.sarg);
           strcat(q, arg.sarg);
           q += (n);
+          break;
+        case 'x':
+          arg.iarg = va_arg(ap, int);
+          n = itoa(arg.iarg, q, 16, 1);
+          q += n;
           break;
         case 'c':
           arg.carg = va_arg(ap, int);

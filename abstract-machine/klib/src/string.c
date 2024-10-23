@@ -4,12 +4,18 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-int itoa(int num, char *dst/*, int base*/) {
+
+int itoa(int num, char *dst, int base, int type) {
+  static char map[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
   char number[32];
   int idx = 0;
 
-  for (; num; num /= 10) {
-    number[idx++] = ((num % 10) + '0');
+  if (type == 1) {
+    for (uint32_t unum = num; unum; unum /= base)
+      number[idx++] = map[(unum % base)];
+  } else {
+    for (; num; num /= base) 
+      number[idx++] = map[(num % base)];
   }
 
   int cnt = idx;
