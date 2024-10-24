@@ -29,22 +29,21 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
 }
 
 void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
-  if (ctl->sync) {
-    outl(SYNC_ADDR, 1);
-  } else {
-    int x = ctl->x, y = ctl->y, w = ctl->w, h = ctl->h;
-    int W = display.w, H = display.h;
-    int len = (x + w >= W) ? W - x : w;
-    uint32_t* pixels = ctl->pixels;
-    for (int j = 0; j < h; j++, pixels += w) {
-      if (y + j < H) {
-        for (int i = 0; i < len; i++) {
-          uint32_t p = pixels[i];
-          // sprintf(stderr, "write to %x\n", FB_ADDR + ((j + y) * W + x + i));
-          outl(FB_ADDR + ((j + y) * W + (x + i)) * sizeof(uint32_t), p);
-        }
+  int x = ctl->x, y = ctl->y, w = ctl->w, h = ctl->h;
+  int W = display.w, H = display.h;
+  int len = (x + w >= W) ? W - x : w;
+  uint32_t* pixels = ctl->pixels;
+  for (int j = 0; j < h; j++, pixels += w) {
+    if (y + j < H) {
+      for (int i = 0; i < len; i++) {
+        uint32_t p = pixels[i];
+        // sprintf(stderr, "write to %x\n", FB_ADDR + ((j + y) * W + x + i));
+        outl(FB_ADDR + ((j + y) * W + (x + i)) * sizeof(uint32_t), p);
       }
     }
+  }
+  if (ctl->sync) {
+    outl(SYNC_ADDR, 1);
   }
 }
 
