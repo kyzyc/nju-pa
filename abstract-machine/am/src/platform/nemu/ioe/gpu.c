@@ -24,7 +24,7 @@ void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
   *cfg = (AM_GPU_CONFIG_T) {
     .present = true, .has_accel = false,
     .width = display.w, .height = display.h,
-    .vmemsz = display.w * display.h * sizeof(uint32_t)
+    .vmemsz = display.size
   };
 }
 
@@ -35,10 +35,11 @@ void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
   uint32_t* pixels = ctl->pixels;
   for (int j = 0; j < h; j++, pixels += w) {
     if (y + j < H) {
+      uint32_t offset = FB_ADDR + ((j + y) * W + x) * sizeof(uint32_t);
       for (int i = 0; i < len; i++) {
         uint32_t p = pixels[i];
         // sprintf(stderr, "write to %x\n", FB_ADDR + ((j + y) * W + x + i));
-        outl(FB_ADDR + ((j + y) * W + (x + i)) * sizeof(uint32_t), p);
+        outl(offset + i * sizeof(uint32_t), p);
       }
     }
   }
