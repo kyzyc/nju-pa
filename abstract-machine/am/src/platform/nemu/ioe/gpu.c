@@ -34,11 +34,10 @@ void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
   uint32_t* pixels = ctl->pixels;
   for (int j = 0; j < h; j++, pixels += w) {
     if (y + j < H) {
-      uint32_t offset = FB_ADDR + ((j + y) * W + x) * sizeof(uint32_t);
-      for (int i = 0; i < len; i++) {
-        uint32_t p = pixels[i];
-        // sprintf(stderr, "write to %x\n", FB_ADDR + ((j + y) * W + x + i));
-        outl(offset + i * sizeof(uint32_t), p);
+      uint32_t* px = (uint32_t*)(FB_ADDR + (((j + y) * W + x) << 2));
+      for (int i = 0; i < len; i++, px++) {
+        // outl(offset + i * sizeof(uint32_t), p);
+        *px = pixels[i];
       }
     }
   }
