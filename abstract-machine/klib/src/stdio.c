@@ -37,6 +37,9 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
             *q = '-';
             q++;
             arg.iarg = (-arg.iarg);
+          } else if (arg.iarg == 0) {
+            *q = '0';
+            q++;
           }
           n = itoa(arg.iarg, q, 10, 0);
           q += n;
@@ -49,6 +52,10 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
           break;
         case 'x':
           arg.iarg = va_arg(ap, int);
+          if (arg.iarg == 0) {
+            *q = '0';
+            q++;
+          }
           n = itoa(arg.iarg, q, 16, 1);
           q += n;
           break;
