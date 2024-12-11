@@ -6,7 +6,7 @@
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
 int printf(const char *fmt, ...) {
-  char buf[512] = ""; // why must initialize???
+  char buf[2048] = "";  // why must initialize???
   va_list args;
   va_start(args, fmt);
 
@@ -76,7 +76,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
       q++;
     }
   }
-// out:
+  // out:
   *q = '\0';
 
   return q - out;
@@ -88,7 +88,6 @@ int sprintf(char *out, const char *fmt, ...) {
 
   return vsprintf(out, fmt, ap);
 }
-
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
   panic("Not implemented");
