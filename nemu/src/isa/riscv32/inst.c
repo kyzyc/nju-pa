@@ -125,6 +125,8 @@ static int decode_exec(Decode *s) {
 
   INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall, I,
           s->dnpc = isa_raise_intr(GPR1, s->pc););
+  INSTPAT("0011000 00010 00000 000 00000 11100 11", mret, R,
+          s->dnpc = cpu.csrs[1];);
   INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw, I,
           int idx = map_csrs_idx(imm);
           word_t t = cpu.csrs[idx]; cpu.csrs[idx] = src1; R(rd) = t;);
