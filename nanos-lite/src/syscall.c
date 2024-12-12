@@ -2,6 +2,8 @@
 
 #include <common.h>
 
+// #define CONFIG_STRACE
+
 #define NELEM(x) (sizeof(x) / sizeof((x)[0]))
 
 static Context* sc;
@@ -42,11 +44,21 @@ static uint32_t (*syscalls[])(void) = {
     [SYS_yield] = sys_yield,
 };
 
+#ifdef CONFIG_STRACE
+const static char* sys_call_name_index[] = {
+    [SYS_exit] = "exit",
+    [SYS_yield] = "yield",
+};
+#endif
+
 void do_syscall(Context* c) {
   sc = c;
   int num = c->GPR1;
 
   if (num >= 0 && num < NELEM(syscalls) && syscalls[num]) {
     syscalls[num]();
+#ifdef CONFIG_STRACE
+    printf("syscall %s -> %d\n", sys_call_name_index[num], c->GPRx);
+#endif
   }
 }
