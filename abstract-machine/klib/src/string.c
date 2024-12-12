@@ -4,9 +4,9 @@
 
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
-
 int itoa(int num, char *dst, int base, int type) {
-  static char map[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+  static char map[16] = {'0', '1', '2', '3', '4', '5', '6', '7',
+                         '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
   char number[32];
   int idx = 0;
 
@@ -14,8 +14,7 @@ int itoa(int num, char *dst, int base, int type) {
     for (uint32_t unum = num; unum; unum /= base)
       number[idx++] = map[(unum % base)];
   } else {
-    for (; num; num /= base) 
-      number[idx++] = map[(num % base)];
+    for (; num; num /= base) number[idx++] = map[(num % base)];
   }
 
   int cnt = idx;
@@ -61,24 +60,22 @@ char *strcat(char *dst, const char *src) {
   return dst;
 }
 
-int strcmp(const char *s1, const char *s2) {
-  const char *p = s1, *q = s2;
-  while ((*p) != '\0' && (*p) == (*q)) {
-    p++;
-    q++;
+int strcmp(const char *s1, const char *s2) { return strncmp(s1, s2, 1 << 31); }
+
+int strncmp(const char *s1, const char *s2, size_t n) {
+  const char *p, *q;
+  int i;
+
+  for (p = s1, q = s2, i = 0; i < n && (*p) && (*p) == (*q); p++, q++) {
   }
 
-  if ((*p) == (*q)) {
+  if (i == n || (*p == *q)) {
     return 0;
   } else if ((*p) > (*q)) {
     return 1;
   }
 
   return -1;
-}
-
-int strncmp(const char *s1, const char *s2, size_t n) {
-  panic("Not implemented");
 }
 
 void *memset(void *s, int c, size_t n) {
@@ -93,7 +90,7 @@ void *memmove(void *dst, const void *src, size_t n) {
   return memcpy(dst, src, n);
 }
 
-void *memcpy(void *out, const void *in, size_t n) { 
+void *memcpy(void *out, const void *in, size_t n) {
   char *p = out;
   const char *q = in;
   for (size_t i = 0; i < n; i++, p++, q++) {
