@@ -66,7 +66,7 @@ int strncmp(const char *s1, const char *s2, size_t n) {
   const char *p, *q;
   int i;
 
-  for (p = s1, q = s2, i = 0; i < n && (*p) && (*p) == (*q); p++, q++) {
+  for (p = s1, q = s2, i = 0; i < n && (*p) && (*p) == (*q); p++, q++, i++) {
   }
 
   if (i == n || (*p == *q)) {
