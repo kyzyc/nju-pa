@@ -27,6 +27,14 @@ static int argint(int n, int* ip) {
   return 0;
 }
 
+// Retrieve an argument as a pointer.
+// Doesn't check for legality, since
+// copyin/copyout will do that.
+int argaddr(int n, uint32_t* ip) {
+  *ip = argraw(n);
+  return 0;
+}
+
 uint32_t sys_yield(void) {
   yield();
   return 0;
@@ -34,20 +42,42 @@ uint32_t sys_yield(void) {
 
 uint32_t sys_exit(void) {
   int n;
-  argint(0, &n);
+  if (argint(0, &n) < 0) {
+    return -1;
+  }
   halt(n);
   return 0;
+}
+
+uint32_t sys_write(void) {
+  int fd, n;
+  uint32_t addr;
+  if (argint(0, &fd) < 0 || argaddr(1, &addr) < 0 || argint(2, &n) < 0) {
+    return -1;
+  }
+
+  if (fd == 1 || fd == 2) {
+    int i;
+    for (i = 0; i < n; i++) {
+      putch(*(char*)(addr + i));
+    }
+    return i;
+  } else {
+    return -1;
+  }
 }
 
 static uint32_t (*syscalls[])(void) = {
     [SYS_exit] = sys_exit,
     [SYS_yield] = sys_yield,
+    [SYS_write] = sys_write,
 };
 
 #ifdef CONFIG_STRACE
 const static char* sys_call_name_index[] = {
     [SYS_exit] = "exit",
     [SYS_yield] = "yield",
+    [SYS_write] = "write",
 };
 #endif
 
