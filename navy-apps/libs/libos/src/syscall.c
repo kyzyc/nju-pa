@@ -73,7 +73,17 @@ int _write(int fd, void *buf, size_t count) {
   return _syscall_(SYS_write, fd, (intptr_t)buf, count);
 }
 
-void *_sbrk(intptr_t increment) { return (void *)-1; }
+extern char end;
+
+void *_sbrk(intptr_t increment) {
+  static char *pbreak = &end;
+  char *before = pbreak;
+  if (_syscall_(SYS_brk, (intptr_t)(before + increment), 0, 0) < 0) {
+    return (void *)-1;
+  }
+  pbreak += increment;
+  return before;
+}
 
 int _read(int fd, void *buf, size_t count) {
   _exit(SYS_read);

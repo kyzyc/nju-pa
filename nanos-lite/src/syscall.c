@@ -67,10 +67,23 @@ uint32_t sys_write(void) {
   }
 }
 
+uint32_t sys_brk(void) {
+  uint32_t addr;
+
+  if (argaddr(0, &addr) < 0) {
+    return -1;
+  }
+
+  // do something
+
+  return 0;
+}
+
 static uint32_t (*syscalls[])(void) = {
     [SYS_exit] = sys_exit,
     [SYS_yield] = sys_yield,
     [SYS_write] = sys_write,
+    [SYS_brk] = sys_brk,
 };
 
 #ifdef CONFIG_STRACE
@@ -78,6 +91,7 @@ const static char* sys_call_name_index[] = {
     [SYS_exit] = "exit",
     [SYS_yield] = "yield",
     [SYS_write] = "write",
+    [SYS_brk] = "brk",
 };
 #endif
 
@@ -86,7 +100,7 @@ void do_syscall(Context* c) {
   int num = c->GPR1;
 
   if (num >= 0 && num < NELEM(syscalls) && syscalls[num]) {
-    syscalls[num]();
+    c->GPRx = syscalls[num]();
 #ifdef CONFIG_STRACE
     printf("syscall %s -> %d\n", sys_call_name_index[num], c->GPRx);
 #endif
