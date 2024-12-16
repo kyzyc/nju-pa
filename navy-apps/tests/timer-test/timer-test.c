@@ -1,17 +1,17 @@
+#include <NDL.h>
 #include <stdio.h>
 #include <sys/time.h>
 
 int main() {
   struct timeval tv;
   int i = 0;
-  gettimeofday(&tv, NULL);
-  long before = tv.tv_sec * 1000 + tv.tv_usec / 1000;;
-  long after = before;
+  NDL_Init(0);
+  uint32_t before = NDL_GetTicks();
+  uint32_t after = before;
 
   while (1) {
     while (after - before < 500) {
-      gettimeofday(&tv, NULL);
-      after = tv.tv_sec * 1000 + tv.tv_usec / 1000;
+      after = NDL_GetTicks();
     }
 
     before = after;
