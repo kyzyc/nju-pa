@@ -2,9 +2,9 @@
 
 #include <common.h>
 
-// #define CONFIG_STRACE
+#include "fs.h"
 
-#define NELEM(x) (sizeof(x) / sizeof((x)[0]))
+// #define CONFIG_STRACE
 
 static Context* sc;
 
@@ -40,6 +40,16 @@ uint32_t sys_yield(void) {
   return 0;
 }
 
+uint32_t sys_open(void) {
+  uint32_t addr;
+  int flags, mode;
+  if (argaddr(0, &addr) < 0 || argint(1, &flags) < 0 || argint(2, &mode) < 0) {
+    return -1;
+  }
+
+  return fs_open((const char*)addr, flags, mode);
+}
+
 uint32_t sys_exit(void) {
   int n;
   if (argint(0, &n) < 0) {
@@ -49,6 +59,16 @@ uint32_t sys_exit(void) {
   return 0;
 }
 
+uint32_t sys_read(void) {
+  int fd, n;
+  uint32_t addr;
+  if (argint(0, &fd) < 0 || argaddr(1, &addr) < 0 || argint(2, &n) < 0) {
+    return -1;
+  }
+
+  return fs_read(fd, (char*)addr, n);
+}
+
 uint32_t sys_write(void) {
   int fd, n;
   uint32_t addr;
@@ -56,15 +76,27 @@ uint32_t sys_write(void) {
     return -1;
   }
 
-  if (fd == 1 || fd == 2) {
-    int i;
-    for (i = 0; i < n; i++) {
-      putch(*(char*)(addr + i));
-    }
-    return i;
-  } else {
+  return fs_write(fd, (const char*)addr, n);
+}
+
+uint32_t sys_close(void) {
+  int fd;
+
+  if (argint(0, &fd) < 0) {
     return -1;
   }
+
+  return fs_close(fd);
+}
+
+uint32_t sys_lseek(void) {
+  int fd, whence, off_t;
+
+  if (argint(0, &fd) < 0 || argint(1, &off_t) < 0 || argint(2, &whence) < 0) {
+    return -1;
+  }
+
+  return fs_lseek(fd, off_t, whence);
 }
 
 uint32_t sys_brk(void) {
@@ -80,18 +112,15 @@ uint32_t sys_brk(void) {
 }
 
 static uint32_t (*syscalls[])(void) = {
-    [SYS_exit] = sys_exit,
-    [SYS_yield] = sys_yield,
-    [SYS_write] = sys_write,
-    [SYS_brk] = sys_brk,
-};
+    [SYS_exit] = sys_exit,   [SYS_yield] = sys_yield, [SYS_open] = sys_open,
+    [SYS_read] = sys_read,   [SYS_write] = sys_write, [SYS_close] = sys_close,
+    [SYS_lseek] = sys_lseek, [SYS_brk] = sys_brk};
 
 #ifdef CONFIG_STRACE
 const static char* sys_call_name_index[] = {
-    [SYS_exit] = "exit",
-    [SYS_yield] = "yield",
-    [SYS_write] = "write",
-    [SYS_brk] = "brk",
+    [SYS_exit] = "exit",   [SYS_yield] = "yield", [SYS_open] = "open",
+    [SYS_read] = "read",   [SYS_write] = "write", [SYS_close] = "close",
+    [SYS_lseek] = "lseek", [SYS_brk] = "brk",
 };
 #endif
 
