@@ -3,6 +3,8 @@
 // #include <stdlib.h>
 #include <unistd.h>
 
+#include "fs.h"
+
 #ifdef __LP64__
 #define Elf_Ehdr Elf64_Ehdr
 #define Elf_Phdr Elf64_Phdr
@@ -21,23 +23,19 @@
 
 extern uint8_t ramdisk_start;
 
-extern size_t ramdisk_read(void *buf, size_t offset, size_t len);
-extern size_t ramdisk_write(const void *buf, size_t offset, size_t len);
-
-static Elf_Ehdr *read_elf_header() {
+static Elf_Ehdr *read_elf_header(int fd) {
   Elf_Ehdr *elf_header = (Elf_Ehdr *)malloc(sizeof(Elf_Ehdr));
-  assert(ramdisk_read(elf_header, 0, sizeof(Elf_Ehdr)));
+  assert(fs_read(fd, elf_header, sizeof(Elf32_Ehdr)));
   return elf_header;
 }
 
-static Elf_Phdr *read_program_header(Elf_Ehdr *eh) {
+static Elf_Phdr *read_program_header(Elf_Ehdr *eh, int fd) {
   Elf_Phdr *ph_table = (Elf_Phdr *)malloc(eh->e_phnum * eh->e_phentsize);
   uint32_t i;
 
+  fs_lseek(fd, (off_t)(eh->e_phoff), SEEK_SET);
   for (i = 0; i < eh->e_phnum; i++) {
-    assert(ramdisk_read(&ph_table[i],
-                        (off_t)(eh->e_phoff + (i * eh->e_phentsize)),
-                        eh->e_phentsize) == eh->e_phentsize);
+    assert(fs_read(fd, &ph_table[i], eh->e_phentsize) == eh->e_phentsize);
   }
 
   return ph_table;
@@ -60,7 +58,10 @@ static bool iself(Elf_Ehdr *eh) {
 }
 
 static uintptr_t loader(PCB *pcb, const char *filename) {
-  Elf_Ehdr *elf_header = read_elf_header();
+  int fd = fs_open(filename, 0, 0);
+
+  Elf_Ehdr *elf_header = read_elf_header(fd);
+
   if (!iself(elf_header)) {
     free(elf_header);
     assert(0);
@@ -71,14 +72,18 @@ static uintptr_t loader(PCB *pcb, const char *filename) {
   }
 
   uintptr_t start_addr = elf_header->e_entry;
+  // printf("start addr: 0x%x\n", start_addr);
 
-  Elf_Phdr *ph_tabl = read_program_header(elf_header);
+  Elf_Phdr *ph_tabl = read_program_header(elf_header, fd);
 
   for (int i = 0; i < elf_header->e_phnum; i++) {
     Elf_Phdr ph = ph_tabl[i];
     if (ph.p_type == PT_LOAD) {
-      memcpy((void *)ph.p_vaddr, (void *)(&ramdisk_start + ph.p_offset),
-             ph.p_filesz);
+      // memcpy((void *)ph.p_vaddr, (void *)(&ramdisk_start + ph.p_offset + 37676),
+      //        ph.p_filesz);
+      // memset((void *)(ph.p_vaddr + ph.p_filesz), 0, ph.p_memsz - ph.p_filesz);
+      fs_lseek(fd, ph.p_offset, SEEK_SET);
+      fs_read(fd, (void *)ph.p_vaddr, ph.p_filesz);
       memset((void *)(ph.p_vaddr + ph.p_filesz), 0, ph.p_memsz - ph.p_filesz);
     }
   }
