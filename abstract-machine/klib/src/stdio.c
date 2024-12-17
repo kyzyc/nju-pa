@@ -47,6 +47,7 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
         case 's':
           arg.sarg = va_arg(ap, const char *);
           n = strlen(arg.sarg);
+          *q = '\0';
           strcat(q, arg.sarg);
           q += (n);
           break;
