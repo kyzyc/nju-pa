@@ -30,9 +30,23 @@ size_t events_read(void *buf, size_t offset, size_t len) {
                  keyname[ev.keycode]);
 }
 
-size_t dispinfo_read(void *buf, size_t offset, size_t len) { return 0; }
+size_t dispinfo_read(void *buf, size_t offset, size_t len) {
+  int w = io_read(AM_GPU_CONFIG).width;
+  int h = io_read(AM_GPU_CONFIG).height;
 
-size_t fb_write(const void *buf, size_t offset, size_t len) { return 0; }
+  return sprintf(buf, "%s: %d\n%s: %d\n", "WIDTH", w, "HEIGHT", h);
+}
+
+size_t fb_write(const void *buf, size_t offset, size_t len) {
+  int w = io_read(AM_GPU_CONFIG).width;
+
+  int x = offset % w;
+  int y = offset / w;
+
+  io_write(AM_GPU_FBDRAW, x, y, (uint32_t *)buf, len, 1, true);
+
+  return len;
+}
 
 void init_device() {
   Log("Initializing devices...");
