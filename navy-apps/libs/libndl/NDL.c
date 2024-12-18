@@ -11,6 +11,7 @@ static int evtdev = -1;
 static int fbdev = -1;
 static int screen_w = 0, screen_h = 0;
 static int frame_w = 0, frame_h = 0;
+static int bias_w = 0, bias_h = 0;
 static int kb_fd;
 static int dispinfo_fd;
 
@@ -76,6 +77,9 @@ void NDL_OpenCanvas(int *w, int *h) {
   screen_w = *w;
   screen_h = *h;
 
+  bias_h = (frame_h - screen_h) / 2;
+  bias_w = (frame_w - screen_w) / 2;
+
   printf("screen_w: %d\nscreen_h: %d\n", screen_w, screen_h);
 
   if (getenv("NWM_APP")) {
@@ -102,7 +106,7 @@ void NDL_OpenCanvas(int *w, int *h) {
 
 void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
   for (int j = 0; j < h; j++) {
-    lseek(3, ((y + j) * frame_w) + x, SEEK_SET);
+    lseek(3, ((y + j + bias_h) * frame_w) + x + bias_w, SEEK_SET);
     write(3, pixels + j * w, w);
   }
 }
