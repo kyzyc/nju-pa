@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,11 +62,17 @@ typedef uint64_t Uint64;
 #define SDLK_y   SDLK_Y
 #define SDLK_z   SDLK_Z
 
+#define STRINGIFY(s)        #s
+#define TOSTRING(s)         STRINGIFY(s)
+
+#define putstr(s) \
+  ({ for (const char *p = s; *p; p++) putc(*p, stderr); })
+
 #define panic_on(cond, s) \
   ({ if (cond) { \
       putstr("libminiSDL Panic: "); putstr(s); \
       putstr(" @ " __FILE__ ":" TOSTRING(__LINE__) "  \n"); \
-      halt(1); \
+      exit(1); \
     } })
 
 #define panic(s) panic_on(1, s)

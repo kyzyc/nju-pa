@@ -1,4 +1,5 @@
 #include <NDL.h>
+#include <SDL.h>
 
 int SDL_Init(uint32_t flags) {
   panic("not implemented");
