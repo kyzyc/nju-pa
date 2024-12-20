@@ -13,6 +13,7 @@ static int screen_w = 0, screen_h = 0;
 static int frame_w = 0, frame_h = 0;
 static int bias_w = 0, bias_h = 0;
 static int kb_fd;
+static int fb_fd;
 static int dispinfo_fd;
 
 uint32_t NDL_GetTicks() {
@@ -95,7 +96,7 @@ void NDL_OpenCanvas(int *w, int *h) {
     write(fbctl, buf, len);
     while (1) {
       // 3 = evtdev
-      int nread = read(3, buf, sizeof(buf) - 1);
+      int nread = read(fb_fd, buf, sizeof(buf) - 1);
       if (nread <= 0) continue;
       buf[nread] = '\0';
       if (strcmp(buf, "mmap ok") == 0) break;
@@ -106,8 +107,12 @@ void NDL_OpenCanvas(int *w, int *h) {
 
 void NDL_DrawRect(uint32_t *pixels, int x, int y, int w, int h) {
   for (int j = 0; j < h; j++) {
-    lseek(3, ((y + j + bias_h) * frame_w) + x + bias_w, SEEK_SET);
-    write(3, pixels + j * w, w);
+    assert(lseek(fb_fd,
+                 (((y + j + bias_h) * frame_w) + x + bias_w) * sizeof(uint32_t),
+                 SEEK_SET) ==
+           ((((y + j + bias_h) * frame_w) + x + bias_w) * sizeof(uint32_t)));
+    assert(write(fb_fd, pixels + j * w, w * sizeof(uint32_t)) ==
+           w * sizeof(uint32_t));
   }
 }
 
@@ -125,6 +130,7 @@ int NDL_Init(uint32_t flags) {
   }
 
   kb_fd = open("/dev/events", 0, 0);
+  fb_fd = open("/dev/fb", 0, 0);
 
   return 0;
 }
