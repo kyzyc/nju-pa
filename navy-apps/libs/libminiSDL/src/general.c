@@ -1,8 +1,11 @@
 #include <NDL.h>
 #include <SDL.h>
 
+extern uint32_t initTicks;
+
 int SDL_Init(uint32_t flags) {
   // panic("not implemented");
+  initTicks = NDL_GetTicks();
   return NDL_Init(flags);
 }
 

@@ -1,6 +1,9 @@
 #include <NDL.h>
+#include <SDL.h>
 #include <sdl-timer.h>
 #include <stdio.h>
+
+uint32_t initTicks;
 
 SDL_TimerID SDL_AddTimer(uint32_t interval, SDL_NewTimerCallback callback, void *param) {
   panic("not implemented");
@@ -13,8 +16,7 @@ int SDL_RemoveTimer(SDL_TimerID id) {
 }
 
 uint32_t SDL_GetTicks() {
-  panic("not implemented");
-  return 0;
+  return NDL_GetTicks() - initTicks;
 }
 
 void SDL_Delay(uint32_t ms) {
