@@ -10,23 +10,26 @@ void SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst,
   assert(dst && src);
   assert(dst->format->BitsPerPixel == src->format->BitsPerPixel);
   int dx = 0, dy = 0;
-  int sw = src->w, sh = src->h;
+  int w = (src->w > dst->w ? dst->w : src->w), h = (src->h > dst->h ? dst->h : src->h);
   int sx = 0, sy = 0;
+  int sw = 0, sh = 0;
   if (dstrect != NULL) {
     dx = dstrect->x;
     dy = dstrect->y;
+    w = (dstrect->w == 0 ? w : dstrect->w);
+    h = (dstrect->h == 0 ? h : dstrect->h);
   }
   if (srcrect != NULL) {
-    sw = srcrect->w;
-    sh = srcrect->h;
+    w = (srcrect->w == 0 ? w : srcrect->w);
+    h = (srcrect->h == 0 ? h : srcrect->h);
     sx = srcrect->x;
     sy = srcrect->y;
   }
 
-  for (int j = 0; j < sh; j++) {
+  for (int j = 0; j < h; j++) {
     int bias = (j + dy) * dst->w + dx;
     int bias_s = (sy + j) * src->w + sx;
-    for (int i = 0; i < sw; i++) {
+    for (int i = 0; i < w; i++) {
       *((uint32_t *)dst->pixels + bias + i) =
           *((uint32_t *)src->pixels + bias_s + i);
     }
