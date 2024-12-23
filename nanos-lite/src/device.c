@@ -26,7 +26,7 @@ size_t events_read(void *buf, size_t offset, size_t len) {
   }
 
   // TODO: use snprintf
-  return sprintf((char *)buf, "k%c %s\n", ev.keydown ? 'd' : 'u',
+  return sprintf((char *)buf, "k%c %s", ev.keydown ? 'd' : 'u',
                  keyname[ev.keycode]);
 }
 

@@ -1,7 +1,12 @@
 #include <NDL.h>
 #include <SDL.h>
+#include <string.h>
+#include <assert.h>
+#include <sdl-event.h>
 
 #define keyname(k) #k,
+
+#define NELEM(x) (sizeof(x) / sizeof((x)[0]))
 
 static const char *keyname[] = {
   "NONE",
@@ -19,7 +24,25 @@ int SDL_PollEvent(SDL_Event *ev) {
 }
 
 int SDL_WaitEvent(SDL_Event *event) {
-  panic("not implemented");
+  while (1) {
+    char buf[64];
+    if (NDL_PollEvent(buf, sizeof(buf))) {
+      if (buf[0] == 'k') {
+        event->type = (buf[1] == 'd' ? SDL_KEYDOWN : SDL_KEYUP);
+        for (int i = 0; i < NELEM(keyname); i++) {
+          if (strcmp(buf + 3, keyname[i]) == 0) {
+            event->key.keysym.sym = i;
+            return 1;
+          }
+        }
+        assert(0);
+      } else {
+
+      }
+      break;
+    }
+  }
+  
   return 1;
 }
 

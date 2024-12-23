@@ -2,12 +2,12 @@
 #include <SDL.h>
 
 int SDL_Init(uint32_t flags) {
-  panic("not implemented");
+  // panic("not implemented");
   return NDL_Init(flags);
 }
 
 void SDL_Quit() {
-  panic("not implemented");
+  // panic("not implemented");
   NDL_Quit();
 }
 

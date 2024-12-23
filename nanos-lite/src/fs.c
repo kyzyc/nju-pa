@@ -62,6 +62,7 @@ int fs_open(const char *pathname, int flags, int mode) {
     }
   }
 
+  printf("open %s filed\n", pathname);
   assert(0);  // should not reach here.
   return -1;
 }
