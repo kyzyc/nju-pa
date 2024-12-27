@@ -10,6 +10,10 @@
 
 static const char *keyname[] = {"NONE", _KEYS(keyname)};
 
+#define SDL_RELEASED 0
+#define SDL_PRESSED 1
+static uint8_t keyState[NELEM(keyname)];
+
 int SDL_PushEvent(SDL_Event *ev) {
   panic("not implemented");
   return 0;
@@ -22,6 +26,7 @@ int SDL_PollEvent(SDL_Event *ev) {
       ev->type = (buf[1] == 'd' ? SDL_KEYDOWN : SDL_KEYUP);
       for (int i = 0; i < NELEM(keyname); i++) {
         if (strcmp(buf + 3, keyname[i]) == 0) {
+          keyState[i] = (ev->type == SDL_KEYDOWN ? 1 : 0);
           ev->key.keysym.sym = i;
           return 1;
         }
@@ -42,6 +47,7 @@ int SDL_WaitEvent(SDL_Event *event) {
         event->type = (buf[1] == 'd' ? SDL_KEYDOWN : SDL_KEYUP);
         for (int i = 0; i < NELEM(keyname); i++) {
           if (strcmp(buf + 3, keyname[i]) == 0) {
+            keyState[i] = (event->type == SDL_KEYDOWN ? 1 : 0);
             event->key.keysym.sym = i;
             return 1;
           }
@@ -62,6 +68,6 @@ int SDL_PeepEvents(SDL_Event *ev, int numevents, int action, uint32_t mask) {
 }
 
 uint8_t *SDL_GetKeyState(int *numkeys) {
-  panic("not implemented");
-  return NULL;
+  // panic("not implemented");
+  return keyState;
 }

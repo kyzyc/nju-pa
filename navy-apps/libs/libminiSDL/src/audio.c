@@ -25,9 +25,9 @@ void SDL_FreeWAV(uint8_t *audio_buf) {
 }
 
 void SDL_LockAudio() {
-  panic("not implemented");
+  // panic("not implemented");
 }
 
 void SDL_UnlockAudio() {
-  panic("not implemented");
+  // panic("not implemented");
 }
